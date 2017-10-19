@@ -1,5 +1,5 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Runtime;
+﻿//using Autodesk.AutoCAD.DatabaseServices;
+//using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,6 +7,39 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+
+#if BRX_APP
+using _AcAp = Bricscad.ApplicationServices;
+//using _AcBr = Teigha.BoundaryRepresentation;
+using _AcCm = Teigha.Colors;
+using _AcDb = Teigha.DatabaseServices;
+using _AcEd = Bricscad.EditorInput;
+using _AcGe = Teigha.Geometry;
+using _AcGi = Teigha.GraphicsInterface;
+using _AcGs = Teigha.GraphicsSystem;
+using _AcPl = Bricscad.PlottingServices;
+using _AcBrx = Bricscad.Runtime;
+using _AcTrx = Teigha.Runtime;
+using _AcWnd = Bricscad.Windows;
+using _AcIntCom = BricscadDb;
+using _AcInt = BricscadApp;
+#elif ARX_APP
+  using _AcAp = Autodesk.AutoCAD.ApplicationServices;
+  using _AcBr = Autodesk.AutoCAD.BoundaryRepresentation;
+  using _AcCm = Autodesk.AutoCAD.Colors;
+  using _AcDb = Autodesk.AutoCAD.DatabaseServices;
+  using _AcEd = Autodesk.AutoCAD.EditorInput;
+  using _AcGe = Autodesk.AutoCAD.Geometry;
+  using _AcGi = Autodesk.AutoCAD.GraphicsInterface;
+  using _AcGs = Autodesk.AutoCAD.GraphicsSystem;
+  using _AcPl = Autodesk.AutoCAD.PlottingServices;
+  using _AcBrx = Autodesk.AutoCAD.Runtime;
+  using _AcTrx = Autodesk.AutoCAD.Runtime;
+  using _AcWnd = Autodesk.AutoCAD.Windows;
+using _AcIntCom = Autodesk.AutoCAD.Interop.Common;
+using _AcInt = Autodesk.AutoCAD.Interop;
+#endif
 
 namespace Plan2Ext
 {
@@ -51,10 +84,10 @@ namespace Plan2Ext
 
         private static void LoadConfig()
         {
-            _Loaded = true;
             GetEncoding();
             GetConfiguration();
             ReadVals();
+            _Loaded = true;
 
         }
         private static void ReadVals()
@@ -93,10 +126,10 @@ namespace Plan2Ext
         private static void GetConfiguration()
         {
             _CurrentConfig = string.Empty;
-            using (var rb = new ResultBuffer(new TypedValue((int)LispDataType.Text, "c:Plan2CurrentConfig")))
+            using (var rb = new _AcDb.ResultBuffer(new _AcDb.TypedValue((int)_AcBrx.LispDataType.Text, "c:Plan2CurrentConfig")))
             {
                 int stat = 0;
-                ResultBuffer res = CADDZone.AutoCAD.Samples.AcedInvokeSample.InvokeLisp(rb, ref stat);
+                _AcDb.ResultBuffer res = CADDZone.AutoCAD.Samples.AcedInvokeSample.InvokeLisp(rb, ref stat);
                 if (stat == RTNORM && res != null)
                 {
                     _CurrentConfig = res.AsArray()[0].Value.ToString();
