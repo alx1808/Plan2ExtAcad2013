@@ -1,10 +1,17 @@
-﻿using Autodesk.AutoCAD.Windows;
+﻿//using Autodesk.AutoCAD.Windows;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+#if BRX_APP
+using Bricscad.Windows;
+#elif ARX_APP
+  using Autodesk.AutoCAD.Windows;
+#endif
+
 
 namespace Plan2Ext.Fenster
 {
@@ -51,8 +58,10 @@ namespace Plan2Ext.Fenster
                   PaletteSetStyles.ShowCloseButton;
                 ps.MinimumSize =
                   new System.Drawing.Size(170, 164);
-#if ACAD2013_OR_NEWER
+#if ACAD2013_OR_NEWER 
+#if ARX_APP
                 ps.SetSize(new System.Drawing.Size(210, 164));
+#endif
 #endif
 
                 ps.Add("FensterOptions", userControl);

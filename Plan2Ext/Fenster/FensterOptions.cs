@@ -1,10 +1,19 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+﻿//using Autodesk.AutoCAD.DatabaseServices;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+#if BRX_APP
+using _AcAp = Bricscad.ApplicationServices;
+using Teigha.DatabaseServices;
+#elif ARX_APP
+  using _AcAp = Autodesk.AutoCAD.ApplicationServices;
+  using Autodesk.AutoCAD.DatabaseServices;
+#endif
+
 
 namespace Plan2Ext.Fenster
 {
@@ -110,11 +119,12 @@ namespace Plan2Ext.Fenster
                 }
                 else
                 {
-                    Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(string.Format(CultureInfo.CurrentCulture, "\nUngültiger Wert '{0:N1}' für Höhe.\n", value));
+                    _AcAp.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(string.Format(CultureInfo.CurrentCulture, "\nUngültiger Wert '{0:N1}' für Höhe.\n", value));
                 }
 
             }
         }
+
         public string HoeheString
         {
             get
@@ -163,7 +173,7 @@ namespace Plan2Ext.Fenster
                 }
                 else
                 {
-                    Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(string.Format(CultureInfo.CurrentCulture, "\nUngültiger Wert '{0:N1}' für Parapet.\n", value));
+                    _AcAp.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(string.Format(CultureInfo.CurrentCulture, "\nUngültiger Wert '{0:N1}' für Parapet.\n", value));
                 }
             }
         }
@@ -207,8 +217,6 @@ namespace Plan2Ext.Fenster
             }
         }
 
-
-
         private double _Staerke = 0.07;
         public double Staerke
         {
@@ -231,6 +239,27 @@ namespace Plan2Ext.Fenster
             }
         }
 
+        private double _WeitePruefTol = 0.01;
+        public double WeitePruefTol
+        {
+            get { return _WeitePruefTol; }
+            set { if (value > 0.0) _WeitePruefTol = value; }
+        }
+        public string WeitePruefTolString
+        {
+            get
+            {
+                return (_WeitePruefTol * 100.0).ToString(CultureInfo.InvariantCulture);
+            }
+            set
+            {
+                double val;
+                if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out val))
+                {
+                    WeitePruefTol = (val / 100.0);
+                }
+            }
+        }
 
         private double _Stock = 0.06;
         public double Stock
@@ -331,6 +360,5 @@ namespace Plan2Ext.Fenster
             }
             return fa;
         }
-
     }
 }

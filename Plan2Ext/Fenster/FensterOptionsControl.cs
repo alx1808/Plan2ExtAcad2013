@@ -8,9 +8,20 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Globalization;
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.DatabaseServices;
+//using Autodesk.AutoCAD.ApplicationServices;
+//using Autodesk.AutoCAD.EditorInput;
+//using Autodesk.AutoCAD.DatabaseServices;
+
+#if BRX_APP
+using _AcAp = Bricscad.ApplicationServices;
+using Teigha.DatabaseServices;
+using Bricscad.EditorInput;
+#elif ARX_APP
+  using _AcAp = Autodesk.AutoCAD.ApplicationServices;
+  using Autodesk.AutoCAD.DatabaseServices;
+  using Autodesk.AutoCAD.EditorInput;
+#endif
+
 
 namespace Plan2Ext.Fenster
 {
@@ -41,6 +52,7 @@ namespace Plan2Ext.Fenster
             this.txtStock.Text = _FensterOptions.StockString;
             this.txtSprossenBreite.Text = _FensterOptions.SprossenBreiteString;
             this.txtAbstand.Text = _FensterOptions.TextAbstandString;
+            this.txtWeiteTol.Text = _FensterOptions.WeitePruefTolString;
             txtFluegelStaerke.Text = _FensterOptions.FluegelStaerkeString;
 
         }
@@ -64,7 +76,7 @@ namespace Plan2Ext.Fenster
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
             }
             finally
             {
@@ -85,7 +97,7 @@ namespace Plan2Ext.Fenster
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
             }
             finally
             {
@@ -108,7 +120,7 @@ namespace Plan2Ext.Fenster
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
             }
             finally
             {
@@ -130,7 +142,7 @@ namespace Plan2Ext.Fenster
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
             }
             finally
             {
@@ -151,7 +163,7 @@ namespace Plan2Ext.Fenster
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
             }
             finally
             {
@@ -172,11 +184,32 @@ namespace Plan2Ext.Fenster
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
             }
             finally
             {
                 txtStaerke_Shield = false;
+            }
+        }
+
+        private bool txtWeiteTol_Shield = false;
+        private void txtWeiteTol_Validating(object sender, CancelEventArgs e)
+        {
+            if (txtWeiteTol_Shield) return;
+            try
+            {
+                txtWeiteTol_Shield = true;
+                _FensterOptions.WeitePruefTolString = txtWeiteTol.Text;
+                txtWeiteTol.Text = _FensterOptions.WeitePruefTolString;
+
+            }
+            catch (Exception ex)
+            {
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+            }
+            finally
+            {
+                txtWeiteTol_Shield = false;
             }
         }
 
@@ -193,7 +226,7 @@ namespace Plan2Ext.Fenster
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
             }
             finally
             {
@@ -214,7 +247,7 @@ namespace Plan2Ext.Fenster
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
             }
             finally
             {
@@ -222,12 +255,46 @@ namespace Plan2Ext.Fenster
             }
         }
 
+        private void btnExamine_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                _AcAp.DocumentCollection dm = _AcAp.Application.DocumentManager;
+                _AcAp.Document doc = dm.MdiActiveDocument;
+                Editor ed = doc.Editor;
+#if NEWSETFOCUS
+                doc.Window.Focus();
+#else
+                Autodesk.AutoCAD.Internal.Utils.SetFocusToDwgView(); // previous 2014 AutoCAD - Versions
+#endif
+                using (_AcAp.DocumentLock m_doclock = doc.LockDocument())
+                {
+
+                    var examiner = new Examiner();
+                    Examiner.Weite_Eps = _FensterOptions.WeitePruefTol;
+                    var nrErrors = examiner.CheckWindowWidth();
+                    if (nrErrors == 0)
+                    {
+                        _AcAp.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(string.Format(CultureInfo.InvariantCulture, "\nFensterprüfung erfolgreich."));
+                    }
+                    else
+                    {
+                        _AcAp.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(string.Format(CultureInfo.InvariantCulture, "\nFensterprüfung: Anzahl der Fehler: {0}.",nrErrors));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _AcAp.Application.ShowAlertDialog(ex.Message);
+            }
+        }
+
         private void btnSelWidth_Click(object sender, EventArgs e)
         {
             try
             {
-                DocumentCollection dm = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager;
-                Document doc = dm.MdiActiveDocument;
+                _AcAp.DocumentCollection dm = _AcAp.Application.DocumentManager;
+                _AcAp.Document doc = dm.MdiActiveDocument;
                 Editor ed = doc.Editor;
 #if NEWSETFOCUS
                 doc.Window.Focus();
@@ -253,12 +320,12 @@ namespace Plan2Ext.Fenster
 
                 }
 
-                Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n");
+                _AcAp.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n");
 
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(ex.Message);
+                _AcAp.Application.ShowAlertDialog(ex.Message);
             }
 
         }
@@ -267,8 +334,8 @@ namespace Plan2Ext.Fenster
         {
             try
             {
-                DocumentCollection dm = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager;
-                Document doc = dm.MdiActiveDocument;
+                _AcAp.DocumentCollection dm = _AcAp.Application.DocumentManager;
+                _AcAp.Document doc = dm.MdiActiveDocument;
                 Editor ed = doc.Editor;
 #if NEWSETFOCUS
                 doc.Window.Focus();
@@ -288,12 +355,12 @@ namespace Plan2Ext.Fenster
                     txtAbstand.Text = _FensterOptions.TextAbstandString;
 
                 }
-                Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n");
+                _AcAp.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n");
 
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(ex.Message);
+                _AcAp.Application.ShowAlertDialog(ex.Message);
             }
 
         }
@@ -312,12 +379,12 @@ namespace Plan2Ext.Fenster
                     txtHeight.Text = _FensterOptions.HoeheString;
 
                 }
-                Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n");
+                _AcAp.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n");
 
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(ex.Message);
+                _AcAp.Application.ShowAlertDialog(ex.Message);
             }
 
         }
@@ -333,12 +400,12 @@ namespace Plan2Ext.Fenster
                     txtParapet.Text = _FensterOptions.ParapetString;
 
                 }
-                Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n");
+                _AcAp.Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n");
 
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(ex.Message);
+                _AcAp.Application.ShowAlertDialog(ex.Message);
             }
 
         }
@@ -346,8 +413,8 @@ namespace Plan2Ext.Fenster
 
         private bool GetHeightFromVermBlocks(ref double height)
         {
-            DocumentCollection dm = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager;
-            Document doc = dm.MdiActiveDocument;
+            _AcAp.DocumentCollection dm = _AcAp.Application.DocumentManager;
+            _AcAp.Document doc = dm.MdiActiveDocument;
             Editor ed = doc.Editor;
 
 #if NEWSETFOCUS
@@ -437,7 +504,7 @@ namespace Plan2Ext.Fenster
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in FensterOptions aufgetreten! {0}", ex.Message));
             }
             finally
             {
@@ -544,18 +611,17 @@ namespace Plan2Ext.Fenster
                 //    //new TypedValue((int)LispDataType.ListEnd)
                 //);
                 //// call the LISP fuction anf get the return value 
-                //ResultBuffer result = Autodesk.AutoCAD.ApplicationServices.Application.Invoke(args);
+                //ResultBuffer result = _AcAp.Application.Invoke(args);
                 //// print the return value
-                //Editor ed = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor;
+                //Editor ed = _AcAp.Application.DocumentManager.MdiActiveDocument.Editor;
                 //ed.WriteMessage("result.toString()");
 
 
             }
             catch (Exception ex)
             {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in Befehl Fenster aufgetreten! {0}", ex.Message));
+                _AcAp.Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler in Befehl Fenster aufgetreten! {0}", ex.Message));
             }
         }
-
     }
 }

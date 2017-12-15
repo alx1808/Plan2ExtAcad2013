@@ -149,6 +149,8 @@
     <Compile Include="DocumentHandling.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Fenster\Examiner.cs" />
+    <Compile Include="Fenster\Searcher.cs" />
     <Compile Include="HoehenPruefung\Commands.cs" />
     <Compile Include="HoehenPruefung\Engine.cs" />
     <Compile Include="HoehenPruefung\Globs.cs" />
@@ -252,6 +254,7 @@
     </Compile>
     <Compile Include="Raumnummern\RnOptions.cs" />
     <Compile Include="Raumnummern\RnPalette.cs" />
+    <Compile Include="Searcher.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="TestExplode.cs" />
     <Compile Include="TheConfiguration.cs" />

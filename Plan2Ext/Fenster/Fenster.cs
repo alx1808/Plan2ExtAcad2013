@@ -1,12 +1,24 @@
-﻿using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Runtime;
+﻿//using Autodesk.AutoCAD.ApplicationServices;
+//using Autodesk.AutoCAD.DatabaseServices;
+//using Autodesk.AutoCAD.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+#if BRX_APP
+using Bricscad.ApplicationServices;
+using Teigha.DatabaseServices;
+using Teigha.Runtime;
+
+#elif ARX_APP
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Runtime;
+#endif
+
 
 namespace Plan2Ext.Fenster
 {
@@ -25,6 +37,13 @@ namespace Plan2Ext.Fenster
         #endregion
 
         static FensterOptionsPalette _FensterOptionsPalette;
+
+        [CommandMethod("Plan2CheckFenWidth")]
+        public static void Plan2CheckFenWidth()
+        {
+            var examiner = new Examiner();
+            examiner.CheckWindowWidth();
+        }
 
         [LispFunction("DotNetFensterOptions")]
         public static object DotNetFensterOptions(ResultBuffer rb)
