@@ -225,7 +225,7 @@ namespace Plan2Ext.AutoIdVergabe
                 DeleteExplodedXrefEntities();
             }
         }
-        
+
         internal void AssignIds()
         {
             if (!SelectRaumblocks()) return;
@@ -246,9 +246,9 @@ namespace Plan2Ext.AutoIdVergabe
                     if (idNummerAtt == null) continue;
 
                     string tuerSchild = tuerSchildAtt.TextString.Trim();
-                    
+
                     string raumNrInfo;
-                    if (!GetNrInfo(tuerSchild,out raumNrInfo))
+                    if (!GetNrInfo(tuerSchild, out raumNrInfo))
                     {
                         _AcCm.Color col = _AcCm.Color.FromRgb((byte)255, (byte)10, (byte)40);
                         Plan2Ext.Globs.InsertFehlerLines(new List<_AcGe.Point3d> { tuerSchildAtt.Position }, layerName: NO_RAUMNR, length: 50, ang: Math.PI * 1.25, col: col);
@@ -418,6 +418,7 @@ namespace Plan2Ext.AutoIdVergabe
             return ofd.Filename;
         }
 #endif
+
 
 
         #endregion
@@ -602,24 +603,13 @@ namespace Plan2Ext.AutoIdVergabe
             var doc = _AcAp.Application.DocumentManager.MdiActiveDocument;
             using (var trans = doc.TransactionManager.StartTransaction())
             {
-                _BlocksForExcelExport = selectedBlocks.Where(oid => !IsXRef(oid, trans)).ToList();
+                _BlocksForExcelExport = selectedBlocks.Where(oid => !Plan2Ext.Globs.IsXref(oid, trans)).ToList();
                 trans.Commit();
             }
 
             if (_BlocksForExcelExport.Count > 0) return true;
             else return false;
 
-        }
-
-        private bool IsXRef(_AcDb.ObjectId oid, _AcDb.Transaction tr)
-        {
-            var br = tr.GetObject(oid, _AcDb.OpenMode.ForRead) as _AcDb.BlockReference;
-            if (br != null)
-            {
-                var bd = (_AcDb.BlockTableRecord)tr.GetObject(br.BlockTableRecord, _AcDb.OpenMode.ForRead);
-                if (bd.IsFromExternalReference) return true;
-            }
-            return false;
         }
 
         #endregion
@@ -812,14 +802,14 @@ namespace Plan2Ext.AutoIdVergabe
                 if (cnt == 3) break;
                 int i = 0;
                 string s = c.ToString();
-                if (!int.TryParse(s,out i)) break;
+                if (!int.TryParse(s, out i)) break;
                 sb.Append(i.ToString());
                 cnt++;
             }
-            raumNr  = sb.ToString();
+            raumNr = sb.ToString();
             if (!string.IsNullOrEmpty(raumNr))
             {
-                rest = rest.Remove(0,raumNr.Length);
+                rest = rest.Remove(0, raumNr.Length);
                 ret = true;
             }
             raumNr = raumNr.PadLeft(3, '0');
@@ -1296,7 +1286,7 @@ namespace Plan2Ext.AutoIdVergabe
             foreach (var oid in _ZuRaumIdBlocksOrAttribs)
             {
                 var ent = _TransMan.GetObject(oid, _AcDb.OpenMode.ForRead);
-                var  bref  = ent as _AcDb.BlockReference;
+                var bref = ent as _AcDb.BlockReference;
                 if (bref != null)
                 {
                     //insPoints.Add(new double[] { bref.Position.X, bref.Position.Y, bref.Position.Z });
