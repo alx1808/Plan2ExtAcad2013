@@ -41,7 +41,7 @@ namespace Plan2Ext.Massenbefehle
                 Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
                 var prompt = new PromptStringOptions("\nEigener Prefix <Return für keinen>: ");
                 prompt.AllowSpaces = true;
-                var prefixUserRes =  ed.GetString(prompt);
+                var prefixUserRes = ed.GetString(prompt);
                 if (prefixUserRes.Status != PromptStatus.OK)
                 {
                     return;
@@ -53,8 +53,8 @@ namespace Plan2Ext.Massenbefehle
                 var files = System.IO.Directory.GetFiles(dirName, "*.dwg", System.IO.SearchOption.AllDirectories);
                 foreach (var fileName in files)
                 {
-                    SetReadOnlyAttribute(fileName, false);
-                    
+                    Globs.SetReadOnlyAttribute(fileName, false);
+
                     AcadApplication acadApp = (AcadApplication)Application.AcadApplication;
                     string prefix = System.IO.Path.GetFileNameWithoutExtension(fileName) + "_"; // "ALX_".ToUpperInvariant();
                     if (!string.IsNullOrEmpty(prefixUser))
@@ -77,7 +77,7 @@ namespace Plan2Ext.Massenbefehle
 
                         // Dyn Blocks are handled in RenameBlocks
                         //ok = RenameDynamicBlocks(prefix, db);
-                        
+
                         if (!ok)
                         {
                             renameNotPossible.Add(fileName);
@@ -123,28 +123,6 @@ namespace Plan2Ext.Massenbefehle
                 System.Windows.Forms.MessageBox.Show(msg, "Plan2RenameBlock");
             }
         }
-
-        /// <summary>
-        /// Sets the read only attribute.
-        /// </summary>
-        /// <param name="fullName">The full name.</param>
-        /// <param name="readOnly">if set to <c>true</c> [read only].</param>
-        private static void SetReadOnlyAttribute(string fullName, bool readOnly)
-        {
-            System.IO.FileInfo filePath = new System.IO.FileInfo(fullName);
-            System.IO.FileAttributes attribute;
-            if (readOnly)
-                attribute = filePath.Attributes | System.IO.FileAttributes.ReadOnly;
-            else
-            {
-                attribute = filePath.Attributes;
-                attribute &= ~System.IO.FileAttributes.ReadOnly;
-                //attribute = (System.IO.FileAttributes)(filePath.Attributes - System.IO.FileAttributes.ReadOnly);
-            }
-
-            System.IO.File.SetAttributes(filePath.FullName, attribute);
-        }
-
 
         private static bool RenameBlocks(List<string> renameNotPossible, string fileName, AcadApplication acadApp, string prefix, Database db)
         {

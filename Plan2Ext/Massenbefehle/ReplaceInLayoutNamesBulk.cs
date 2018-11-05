@@ -108,7 +108,7 @@ namespace Plan2Ext.Massenbefehle
 
                     if (allSame) continue;
 
-                    SetReadOnlyAttribute(fileName, false);
+                    Globs.SetReadOnlyAttribute(fileName, false);
 
                     log.Info("----------------------------------------------------------------------------------");
                     log.Info(string.Format(CultureInfo.CurrentCulture, "Öffne Zeichnung {0}", fileName));
@@ -144,7 +144,7 @@ namespace Plan2Ext.Massenbefehle
                                     if (String.CompareOrdinal(name, newLoName) != 0)
                                     {
                                         layoutMgr.RenameLayout(name, newLoName);
-                                        log.InfoFormat(CultureInfo.CurrentCulture, "Layout '{0}' umbenannt in '{1}'.",name,newLoName);
+                                        log.InfoFormat(CultureInfo.CurrentCulture, "Layout '{0}' umbenannt in '{1}'.", name, newLoName);
                                         ok = true;
                                         _NrOfReplacedTexts++;
                                     }
@@ -348,7 +348,7 @@ namespace Plan2Ext.Massenbefehle
                         var val = impMatrix[r, i + 1];
                         if (val == null)
                         {
-                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Ungültiger Wert in Exceldatei in Spalte {0}, Reihe {1}!", i+1,r));
+                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Ungültiger Wert in Exceldatei in Spalte {0}, Reihe {1}!", i + 1, r));
                         }
                         lists[i].Add(val.ToString());
                     }
@@ -593,7 +593,7 @@ namespace Plan2Ext.Massenbefehle
                 }
                 foreach (var fileName in dwgFileNames)
                 {
-                    SetReadOnlyAttribute(fileName, false);
+                    Globs.SetReadOnlyAttribute(fileName, false);
 
                     bool ok = false;
 
@@ -680,27 +680,6 @@ namespace Plan2Ext.Massenbefehle
         private static string[] UpperCaseIt(string[] paths)
         {
             return paths.Select(x => x.ToUpperInvariant()).ToArray();
-        }
-
-        /// <summary>
-        /// Sets the read only attribute.
-        /// </summary>
-        /// <param name="fullName">The full name.</param>
-        /// <param name="readOnly">if set to <c>true</c> [read only].</param>
-        private static void SetReadOnlyAttribute(string fullName, bool readOnly)
-        {
-            System.IO.FileInfo filePath = new System.IO.FileInfo(fullName);
-            System.IO.FileAttributes attribute;
-            if (readOnly)
-                attribute = filePath.Attributes | System.IO.FileAttributes.ReadOnly;
-            else
-            {
-                attribute = filePath.Attributes;
-                attribute &= ~System.IO.FileAttributes.ReadOnly;
-                //attribute = (System.IO.FileAttributes)(filePath.Attributes - System.IO.FileAttributes.ReadOnly);
-            }
-
-            System.IO.File.SetAttributes(filePath.FullName, attribute);
         }
 
         private static string ReplaceTexts(string txt, out bool changed)
