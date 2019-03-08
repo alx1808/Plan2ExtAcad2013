@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Globalization;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -1047,10 +1048,16 @@ namespace Plan2Ext
             if (ids.Count == 0) return;
             var doc = _AcAp.Application.DocumentManager.MdiActiveDocument;
             var db = doc.Database;
-            using (_AcDb.Transaction tr = doc.TransactionManager.StartTransaction())
+            DrawOrderBottom(ids, db);
+        }
+
+        public static void DrawOrderBottom(_AcDb.ObjectIdCollection ids, _AcDb.Database db)
+        {
+            using (_AcDb.Transaction tr = db.TransactionManager.StartTransaction())
             {
                 _AcDb.BlockTable bt = (_AcDb.BlockTable)tr.GetObject(db.BlockTableId, _AcDb.OpenMode.ForRead);
-                _AcDb.BlockTableRecord btr = (_AcDb.BlockTableRecord)tr.GetObject(bt[_AcDb.BlockTableRecord.ModelSpace], _AcDb.OpenMode.ForRead);
+                _AcDb.BlockTableRecord btr =
+                    (_AcDb.BlockTableRecord)tr.GetObject(bt[_AcDb.BlockTableRecord.ModelSpace], _AcDb.OpenMode.ForRead);
 
                 var dot = (_AcDb.DrawOrderTable)tr.GetObject(btr.DrawOrderTableId, _AcDb.OpenMode.ForWrite);
                 dot.MoveToBottom(ids);
@@ -1253,6 +1260,69 @@ namespace Plan2Ext
             }
         }
 
+        public static void PurgeAllBlocks()
+        {
+            // Get the current document and database
+            var acDoc = _AcAp.Application.DocumentManager.MdiActiveDocument;
+            var acCurDb = acDoc.Database;
+
+            PurgeBlocks(acCurDb);
+        }
+
+        /// <summary>
+        /// Purges Blocks
+        /// </summary>
+        /// <param name="db"></param>
+        /// <returns>Number of purged blocks</returns>
+        public static int PurgeBlocks(_AcDb.Database db)
+        {
+            return Purge(db, db.BlockTableId);
+        }
+
+        /// <summary>
+        /// Purges Layers
+        /// </summary>
+        /// <param name="db"></param>
+        /// <returns>Number of purged blocks</returns>
+        public static int PurgeLayers(_AcDb.Database db)
+        {
+            return Purge(db, db.LayerTableId);
+        }
+
+        private static int Purge(_AcDb.Database db, _AcDb.ObjectId tableId)
+        {
+            var nrOfPurged = 0;
+            using (var transaction = db.TransactionManager.StartTransaction())
+            {
+                // Open the Layer table for read
+                var table = (_AcDb.SymbolTable)transaction.GetObject(tableId, _AcDb.OpenMode.ForRead);
+                var objIdColl = new _AcDb.ObjectIdCollection();
+                foreach (var oid in table)
+                {
+                    objIdColl.Add(oid);
+                }
+
+                if (objIdColl.Count > 0)
+                {
+                    db.Purge(objIdColl);
+                    nrOfPurged = objIdColl.Count;
+
+                    if (objIdColl.Count > 0)
+                    {
+                        foreach (_AcDb.ObjectId oid in objIdColl)
+                        {
+                            var record = transaction.GetObject(oid, _AcDb.OpenMode.ForWrite);
+                            record.Erase(true);
+                        }
+                    }
+                }
+
+                transaction.Commit();
+            }
+
+            return nrOfPurged;
+        }
+
         public static Dictionary<string, string> GetAttributes(_AcDb.BlockReference blockRef)
         {
             Dictionary<string, string> valuePerTag = new Dictionary<string, string>();
@@ -1423,7 +1493,7 @@ namespace Plan2Ext
 
 
 
-        public static _AcDb.ObjectId InsertDwg(string fname, _AcGe.Point3d insertPt, double rotation, string blockName)
+        public static _AcDb.ObjectId InsertDwg(string fname, _AcGe.Point3d insertPt, double rotation, double scale, string blockName)
         {
 
             log.Debug("InsertDwg");
@@ -1431,7 +1501,73 @@ namespace Plan2Ext
             _AcDb.Database db = doc.Database;
             _AcEd.Editor ed = doc.Editor;
 
-            _AcDb.ObjectId objId;
+            _AcDb.ObjectId ret;
+            ret = InsertDwgToDb(fname, insertPt, rotation, scale, blockName, db);
+
+            log.Debug("Return InsertDwg");
+            return ret;
+        }
+
+        public static void InsertDwgToDwg(string targetFileName, string sourceFileName, _AcGe.Point3d insertPt,
+            double rotation, double scale, bool createBak)
+        {
+            _AcDb.ObjectId blockOid;
+            var newFileName = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(targetFileName),
+                System.IO.Path.GetFileNameWithoutExtension(targetFileName) + "_X.dwg");
+            using (var dbTarget = new _AcDb.Database(false, true))
+            {
+                dbTarget.ReadDwgFile(targetFileName, System.IO.FileShare.Read, true, "");
+                string newBlockName = GetNewBlockname(dbTarget, "Dummy");
+                blockOid = InsertDwgToDb(sourceFileName, insertPt, rotation, scale, newBlockName, dbTarget);
+                Explode(blockOid, dbTarget, true, true);
+                dbTarget.SaveAs(newFileName, _AcDb.DwgVersion.Newest);
+            }
+
+            if (createBak)
+                BakAndMove(newFileName, targetFileName);
+            else Move(newFileName, targetFileName);
+        }
+
+        internal static string GetNewBlockname(_AcDb.Database dbTarget, string prefix)
+        {
+            var inc = 1;
+            while (BlockExists(prefix + inc, dbTarget))
+            {
+                inc++;
+            }
+
+            return prefix + inc;
+        }
+
+        internal static void BakAndMove(string newFileName, string targetFileName)
+        {
+            var bakFileName = GetBakFileName(targetFileName);
+            if (System.IO.File.Exists(bakFileName)) System.IO.File.Delete(bakFileName);
+            System.IO.File.Move(targetFileName, bakFileName);
+            System.IO.File.Move(newFileName, targetFileName);
+        }
+
+        internal static string GetBakFileName(string dwgFileName)
+        {
+            return dwgFileName.Remove(dwgFileName.Length - 3, 3) + "Bak";
+        }
+
+        internal static void CreateBakFile(string dwgFileName)
+        {
+            if (System.IO.File.Exists(dwgFileName))
+            {
+                System.IO.File.Copy(dwgFileName, GetBakFileName(dwgFileName), true);
+            }
+        }
+
+        internal static void Move(string newFileName, string targetFileName)
+        {
+            if (System.IO.File.Exists(targetFileName)) System.IO.File.Delete(targetFileName);
+            System.IO.File.Move(newFileName, targetFileName);
+        }
+
+        private static _AcDb.ObjectId InsertDwgToDb(string fname, _AcGe.Point3d insertPt, double rotation, double scale, string blockName, _AcDb.Database db)
+        {
             _AcDb.ObjectId ret;
             using (_AcDb.Transaction tr = db.TransactionManager.StartTransaction())
             {
@@ -1440,17 +1576,19 @@ namespace Plan2Ext
                 log.Debug("Get Modelspace");
                 _AcDb.BlockTableRecord btrMs = db.CurrentSpaceId.GetObject(_AcDb.OpenMode.ForWrite) as _AcDb.BlockTableRecord;
                 log.Debug("Create new Database");
+                _AcDb.ObjectId objId;
                 using (_AcDb.Database dbInsert = new _AcDb.Database(false, true))
                 {
                     log.Debug("ReadDwgFile");
                     dbInsert.ReadDwgFile(fname, System.IO.FileShare.Read, true, "");
                     log.Debug("Insert to Db");
                     objId = db.Insert(blockName, dbInsert, true);
-
                 }
+
                 log.Debug("New Blockreference");
                 _AcDb.BlockReference bref = new _AcDb.BlockReference(insertPt, objId);
                 bref.Rotation = rotation;
+                bref.ScaleFactors = new _AcGe.Scale3d(scale);
                 log.Debug("Append to Modelspace");
                 btrMs.AppendEntity(bref);
                 log.Debug("AddNewlyCreatedDBObject");
@@ -1461,9 +1599,72 @@ namespace Plan2Ext
                 tr.Commit();
             }
 
-            log.Debug("Return InsertDwg");
             return ret;
         }
+
+        public static void Wblock(string fileName, IEnumerable<_AcDb.ObjectId> objectIds, _AcGe.Point3d origin)
+        {
+            if (System.IO.File.Exists(fileName)) throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "File already exists: {0}!", fileName));
+
+            var currentDatabase = _AcAp.Application.DocumentManager.MdiActiveDocument.Database;
+            var objectIdCollection = new _AcDb.ObjectIdCollection(objectIds.ToArray());
+            using (var database = new _AcDb.Database(true, false))
+            {
+                currentDatabase.Wblock(database, objectIdCollection, origin,
+                    _AcDb.DuplicateRecordCloning.Ignore);
+                database.SaveAs(fileName, _AcDb.DwgVersion.Newest);
+            }
+        }
+
+        /// <summary>
+        /// Explode block in current document
+        /// </summary>
+        /// <param name="blockOid"></param>
+        public static List<_AcDb.ObjectId> Explode(_AcDb.ObjectId blockOid, bool deleteRef = false, bool purge = false)
+        {
+            var db = _AcAp.Application.DocumentManager.MdiActiveDocument.Database;
+            return Explode(blockOid, db, deleteRef, purge);
+        }
+
+        internal static List<_AcDb.ObjectId> Explode(_AcDb.ObjectId blockOid, _AcDb.Database db, bool deleteRef, bool purge)
+        {
+            var newlyCreatedObjects = new List<_AcDb.ObjectId>();
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                //_AcDb.BlockTable bt = (_AcDb.BlockTable)tr.GetObject(db.BlockTableId, _AcDb.OpenMode.ForRead);
+                _AcDb.BlockReference block = (_AcDb.BlockReference)tr.GetObject(blockOid, _AcDb.OpenMode.ForRead);
+                _AcDb.ObjectId blockRefTableId = block.BlockTableRecord;
+                _AcDb.BlockTableRecord targetSpace =
+                    (_AcDb.BlockTableRecord)tr.GetObject(block.BlockId, _AcDb.OpenMode.ForWrite);
+                //_AcDb.BlockTableRecord targetSpace = (_AcDb.BlockTableRecord)tr.GetObject(_AcDb.SymbolUtilityServices.GetBlockModelSpaceId(db), _AcDb.OpenMode.ForWrite);
+                _AcDb.DBObjectCollection objs = new _AcDb.DBObjectCollection();
+                block.Explode(objs);
+                foreach (_AcDb.DBObject obj in objs)
+                {
+                    _AcDb.Entity ent = (_AcDb.Entity)obj;
+                    targetSpace.AppendEntity(ent);
+                    tr.AddNewlyCreatedDBObject(ent, true);
+                    newlyCreatedObjects.Add(ent.ObjectId);
+                }
+
+                if (deleteRef)
+                {
+                    block.UpgradeOpen();
+                    block.Erase();
+                }
+
+                if (purge)
+                {
+                    var bd = (_AcDb.BlockTableRecord)tr.GetObject(blockRefTableId, _AcDb.OpenMode.ForWrite);
+                    bd.Erase();
+                }
+
+                tr.Commit();
+            }
+
+            return newlyCreatedObjects;
+        }
+
 
         public static _AcDb.BlockReference GetBlockFromItsSubentity(_AcDb.Transaction tr, _AcEd.PromptNestedEntityResult nres)
         {
@@ -2217,6 +2418,11 @@ namespace Plan2Ext
             log.Info(string.Format(CultureInfo.InvariantCulture, "BlockExists: {0}", blockName));
 
             _AcDb.Database db = _AcAp.Application.DocumentManager.MdiActiveDocument.Database;
+            return BlockExists(blockName, db);
+        }
+
+        internal static bool BlockExists(string blockName, _AcDb.Database db)
+        {
             _AcDb.TransactionManager tm = db.TransactionManager;
             using (_AcDb.Transaction myT = tm.StartTransaction())
             {
@@ -2736,6 +2942,14 @@ namespace Plan2Ext
             if (tv.TypeCode == (int)_AcBrx.LispDataType.T_atom) return true;
             if (tv.TypeCode == (int)_AcBrx.LispDataType.Nil) return false;
             throw new ArgumentException("Typed value is not a boolean", paramName: "tv");
+        }
+
+        internal static string RemoveInvalidCharacters(string fileName)
+        {
+            var regexSearch = new string(System.IO.Path.GetInvalidFileNameChars()) + new string(System.IO.Path.GetInvalidPathChars());
+            var r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
+            fileName = r.Replace(fileName, "_");
+            return fileName;
         }
     }
 }
