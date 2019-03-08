@@ -4,8 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace Plan2Ext.BlockToExcel
@@ -31,7 +29,7 @@ namespace Plan2Ext.BlockToExcel
             Import,
         }
 
-        public Excelizer(string fileName,Direction direct)
+        public Excelizer(string fileName, Direction direct)
         {
             _FileName = fileName;
             _MyApp = new Excel.Application();
@@ -62,7 +60,7 @@ namespace Plan2Ext.BlockToExcel
         {
             if (NrCols == 0) throw new InvalidOperationException("Es wurden keine Spalten gefunden!");
             var b1 = GetCellBez(0, 0);
-            var b2 = GetCellBez(0, NrCols-1);
+            var b2 = GetCellBez(0, NrCols - 1);
             var range = _Sheet.Range[b1, b2];
             object[,] impMatrix = range.get_Value(Excel.XlRangeValueDataType.xlRangeValueDefault);
             for (int i = 1; i <= NrCols; i++)
@@ -76,7 +74,7 @@ namespace Plan2Ext.BlockToExcel
         {
             int nextIndex = 0;
             if (_IndexPerColHeader.Count > 0)
-                nextIndex = _IndexPerColHeader.Values.Max()+1;
+                nextIndex = _IndexPerColHeader.Values.Max() + 1;
 
             foreach (var headerBez in headers)
             {
@@ -187,9 +185,9 @@ namespace Plan2Ext.BlockToExcel
 
         internal class ImportedRow
         {
-            public string DwgPath { get { return Values[IndexPerHeader[BlockToExcel.DWGPATH]]; } }
-            public string BlockName { get { return Values[IndexPerHeader[BlockToExcel.BLOCK_NAME]]; } }
-            public string Handle { get { return Values[IndexPerHeader[BlockToExcel.HANDLE]]; } }
+            public string DwgPath { get { return Values[IndexPerHeader[BlockToExcel.Dwgpath]]; } }
+            public string BlockName { get { return Values[IndexPerHeader[BlockToExcel.BlockName]]; } }
+            public string Handle { get { return Values[IndexPerHeader[BlockToExcel.Handle]]; } }
             public static Dictionary<string, int> IndexPerHeader { get; set; }
             public List<string> Values { get; set; }
 
@@ -197,7 +195,7 @@ namespace Plan2Ext.BlockToExcel
             {
                 foreach (var kvp in IndexPerHeader)
                 {
-                    if (string.Compare(kvp.Key, attName, StringComparison.OrdinalIgnoreCase)== 0)
+                    if (string.Compare(kvp.Key, attName, StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         return Values[IndexPerHeader[kvp.Key]];
                     }
@@ -212,14 +210,14 @@ namespace Plan2Ext.BlockToExcel
             Excel.Range range;
             // test import
             b1 = GetCellBez(1, 0);
-            b2 = GetCellBez(NrRows-1, NrCols-1);
+            b2 = GetCellBez(NrRows - 1, NrCols - 1);
             range = _Sheet.Range[b1, b2];
             object[,] impMatrix = range.get_Value(Excel.XlRangeValueDataType.xlRangeValueDefault);
 
             ImportedRow.IndexPerHeader = _IndexPerColHeader;
             List<ImportedRow> importedRows = new List<ImportedRow>();
-            int nrOfValRows = NrRows -1;
-            for (int i = 1; i <= nrOfValRows;i++)
+            int nrOfValRows = NrRows - 1;
+            for (int i = 1; i <= nrOfValRows; i++)
             {
                 List<string> values = new List<string>();
                 for (int j = 1; j <= NrCols; j++)
@@ -247,7 +245,7 @@ namespace Plan2Ext.BlockToExcel
             var b1 = GetCellBez(0, 0);
 
             AppendHeaders(valuesPerColumn.Keys.ToList());
-            var b2 = GetCellBez(0, _IndexPerColHeader.Count-1);
+            var b2 = GetCellBez(0, _IndexPerColHeader.Count - 1);
             var range = _Sheet.Range[b1, b2];
             range.Font.Bold = true;
 
@@ -256,7 +254,7 @@ namespace Plan2Ext.BlockToExcel
 
             int rowCount = colLists[0].Count;
             int colCount = _IndexPerColHeader.Count;
-            b1 = GetCellBez(NrRows,0);
+            b1 = GetCellBez(NrRows, 0);
             b2 = GetCellBez(NrRows + rowCount - 1, colCount - 1);
             range = _Sheet.Range[b1, b2];
             range.HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter;
