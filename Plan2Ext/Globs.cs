@@ -1279,6 +1279,39 @@ namespace Plan2Ext
             return Purge(db, db.BlockTableId);
         }
 
+        public static void PurgeAllSymbolTables(_AcDb.Database db, int nrOfLevels = 5, int nrOfRepetition = 5)
+        {
+
+            for (int i = 0; i < nrOfRepetition; i++)
+            {
+                var nrOfPurged = 0;
+                nrOfPurged += PurgeAll(db, nrOfLevels, db.LayerTableId);
+                nrOfPurged += PurgeAll(db, nrOfLevels, db.LinetypeTableId);
+                nrOfPurged += PurgeAll(db, nrOfLevels, db.BlockTableId);
+                nrOfPurged += PurgeAll(db, nrOfLevels, db.TextStyleTableId);
+                nrOfPurged += PurgeAll(db, nrOfLevels, db.ViewTableId);
+                nrOfPurged += PurgeAll(db, nrOfLevels, db.UcsTableId);
+                nrOfPurged += PurgeAll(db, nrOfLevels, db.ViewportTableId);
+                nrOfPurged += PurgeAll(db, nrOfLevels, db.RegAppTableId);
+                nrOfPurged += PurgeAll(db, nrOfLevels, db.DimStyleTableId);
+                if (nrOfPurged == 0) break;
+            }
+        }
+
+        private static int PurgeAll(_AcDb.Database db, int nrOfLevels, _AcDb.ObjectId tableId)
+        {
+            var nrOfPurged = 0;
+            for (var i = 0; i < nrOfLevels; i++)
+            {
+                var nrOfInnerPurged = Purge(db, tableId);
+                nrOfPurged += nrOfInnerPurged;
+                if (nrOfInnerPurged == 0) break;
+            }
+
+            return nrOfPurged;
+        }
+
+
         /// <summary>
         /// Purges Layers
         /// </summary>
