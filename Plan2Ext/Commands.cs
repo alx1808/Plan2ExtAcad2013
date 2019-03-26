@@ -541,7 +541,8 @@ namespace Plan2Ext
             var arr = rb.AsArray();
             if (arr.Length < 6) return;
             string layer = arr[0].Value.ToString();
-            // length 1
+
+            var length = GetDoubleValue(arr[1].Value);
             // angle 2
             // colorindex 3
             // LB 4
@@ -551,7 +552,16 @@ namespace Plan2Ext
             {
                 pts.Add((_AcGe.Point3d)arr[i].Value);
             }
-            Globs.InsertFehlerLines(pts, layer);
+            if (length.HasValue)
+                Globs.InsertFehlerLines(pts, layer, length.Value);
+            else Globs.InsertFehlerLines(pts, layer);
+        }
+
+        private static double? GetDoubleValue(object o)
+        {
+            if (o == null) return null;
+            if (o is double || o is float || o is int || o is Int16) return Convert.ToDouble(o);
+            return null;
         }
 
         [_AcTrx.LispFunction("InoNewGuid")]
