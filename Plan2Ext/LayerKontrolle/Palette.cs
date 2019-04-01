@@ -43,7 +43,9 @@ namespace Plan2Ext.LayerKontrolle
                             PaletteSetStyles.ShowPropertiesMenu |
                             PaletteSetStyles.ShowAutoHideButton |
                             PaletteSetStyles.ShowCloseButton,
-                    MinimumSize = new System.Drawing.Size(170, 164)
+                    MinimumSize = new System.Drawing.Size(170, 164),
+                    KeepFocus = false
+
                 };
                 _PaletteSet.Add("LayerKontrolle", _Control);
 
@@ -100,6 +102,11 @@ namespace Plan2Ext.LayerKontrolle
             var doc = Application.DocumentManager.MdiActiveDocument;
             using (doc.LockDocument())
             {
+#if NEWSETFOCUS
+                doc.Window.Focus();
+#else
+                Autodesk.AutoCAD.Internal.Utils.SetFocusToDwgView(); // previous 2014 AutoCAD - Versions
+#endif
                 Globs.LayerOn(".*");
             }
         }
@@ -107,15 +114,20 @@ namespace Plan2Ext.LayerKontrolle
         internal static void SelectAllVariableEntitiesInModelSpace()
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
+#if NEWSETFOCUS
+            doc.Window.Focus();
+#else
+                Autodesk.AutoCAD.Internal.Utils.SetFocusToDwgView(); // previous 2014 AutoCAD - Versions
+#endif
             using (doc.LockDocument())
             {
                 var db = doc.Database;
                 var listOfVariableEntityOids = new List<ObjectId>();
                 using (var transaction = doc.TransactionManager.StartTransaction())
                 {
-                    var blockTable = (BlockTable)transaction.GetObject(db.BlockTableId, OpenMode.ForRead);
+                    var blockTable = (BlockTable) transaction.GetObject(db.BlockTableId, OpenMode.ForRead);
                     var blockTableRecord =
-                        (BlockTableRecord)transaction.GetObject(blockTable[BlockTableRecord.ModelSpace],
+                        (BlockTableRecord) transaction.GetObject(blockTable[BlockTableRecord.ModelSpace],
                             OpenMode.ForRead);
 
                     foreach (var oid in blockTableRecord)
@@ -130,9 +142,15 @@ namespace Plan2Ext.LayerKontrolle
                 }
 
                 doc.Editor.SetImpliedSelection(new ObjectId[0]);
-                if (listOfVariableEntityOids.Count <= 0) return;
+
+                if (listOfVariableEntityOids.Count <= 0)
+                {
+                    doc.Editor.WriteMessage("\nKein Entity gefunden.");
+                    return;
+                }
                 Globs.LayerOn(".*");
                 doc.Editor.SetImpliedSelection(listOfVariableEntityOids.ToArray());
+                doc.Editor.WriteMessage("\nAnzahl gefundener Entities: " + listOfVariableEntityOids.Count);
             }
         }
 
@@ -169,7 +187,7 @@ namespace Plan2Ext.LayerKontrolle
             Variabel,
         };
 
-        internal static void GetEntityTypesForLayer(string layerName, Dictionary<Type, int> entityTypesDictionary,
+        internal static void GetEntityTypesForLayer(string layerName, Dictionary<Type, int> entityTypesDictionary, 
             out  EntityPropertyMode colorPropertyMode,
             out  EntityPropertyMode lineTypePropertyMode,
             out EntityPropertyMode lineWeightPropertyMode)
@@ -186,7 +204,7 @@ namespace Plan2Ext.LayerKontrolle
                     foreach (var blockTableRecordOid in blockTable)
                     {
                         var blockTableRecord =
-                            (BlockTableRecord)transaction.GetObject(blockTableRecordOid, OpenMode.ForRead);
+                            (BlockTableRecord) transaction.GetObject(blockTableRecordOid, OpenMode.ForRead);
                         foreach (var oid in blockTableRecord)
                         {
                             var entity = transaction.GetObject(oid, OpenMode.ForRead) as Entity;
@@ -197,7 +215,7 @@ namespace Plan2Ext.LayerKontrolle
                             if (entity.Linetype != "ByLayer") lineTypePropertyMode = EntityPropertyMode.Variabel;
                             if (entity.LineWeight != LineWeight.ByLayer)
                                 lineWeightPropertyMode = EntityPropertyMode.Variabel;
-
+                            
 
                             var type = entity.GetType();
                             int cnt;

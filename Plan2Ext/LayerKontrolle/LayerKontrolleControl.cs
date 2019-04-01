@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using AcApp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 // ReSharper disable IdentifierTypo
+// ReSharper disable StringLiteralTypo
 
 namespace Plan2Ext.LayerKontrolle
 {
@@ -61,7 +62,7 @@ namespace Plan2Ext.LayerKontrolle
                 _ignoreIndexChangedReaction = ignoreSetLayers;
                 lstAllLayers.Items.Clear();
                 lstEntityTypes.Items.Clear();
-                lstAlwaysOn.Items.Clear();
+                lstAlwaysOn.Items.Clear(); 
                 lblColorPropertyMode.Text = "";
                 lblLineTypePropertyMode.Text = "";
                 lblLineWeightPropertyMode.Text = "";
@@ -114,19 +115,17 @@ namespace Plan2Ext.LayerKontrolle
             Palette.GetEntityTypesForLayer(lstAllLayers.SelectedItem.ToString(), entityTypesDictionary, out colorPropertyMode, out lineTypePropertyMode, out lineWeightPropertyMode);
             foreach (var kvp in entityTypesDictionary)
             {
-                // todo: uncomment entitytypes
-                //lstEntityTypes.Items.Add(kvp.Key.GetGermanName() + " (" + kvp.Value + ")");
-                lstEntityTypes.Items.Add(kvp.Key.Name + " (" + kvp.Value + ")");
+                lstEntityTypes.Items.Add(kvp.Key.GetGermanName() + " (" + kvp.Value + ")");
             }
 
             // ReSharper disable once LocalizableElement
-            lblColorPropertyMode.Text = "Color: " + colorPropertyMode;
+            lblColorPropertyMode.Text = "Farbe: " + ToGerman(colorPropertyMode);
             lblColorPropertyMode.ForeColor = colorPropertyMode == Palette.EntityPropertyMode.Variabel ? System.Drawing.Color.Red : System.Drawing.SystemColors.ControlText;
             lblColorPropertyMode.Font = colorPropertyMode == Palette.EntityPropertyMode.Variabel
                 ? new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold)
                 : new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular);
             // ReSharper disable once LocalizableElement
-            lblLineTypePropertyMode.Text = "LineType: " + lineTypePropertyMode;
+            lblLineTypePropertyMode.Text = "Linientyp: " + ToGerman(lineTypePropertyMode);
             lblLineTypePropertyMode.ForeColor = lineTypePropertyMode == Palette.EntityPropertyMode.Variabel ? System.Drawing.Color.Red : System.Drawing.SystemColors.ControlText;
             lblLineTypePropertyMode.Font = lineTypePropertyMode == Palette.EntityPropertyMode.Variabel
                 ? new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold)
@@ -134,7 +133,7 @@ namespace Plan2Ext.LayerKontrolle
             //    ? new Font(lblLineTypePropertyMode.Font.Name, lblLineTypePropertyMode.Font.Size, FontStyle.Bold)
             //    : new Font(lblLineTypePropertyMode.Font.Name, lblLineTypePropertyMode.Font.Size, FontStyle.Regular);
             // ReSharper disable once LocalizableElement
-            lblLineWeightPropertyMode.Text = "LineWeight: " + lineWeightPropertyMode;
+            lblLineWeightPropertyMode.Text = "Linienstärke: " + ToGerman(lineWeightPropertyMode);
             lblLineWeightPropertyMode.ForeColor = lineWeightPropertyMode == Palette.EntityPropertyMode.Variabel ? System.Drawing.Color.Red : System.Drawing.SystemColors.ControlText;
             lblLineWeightPropertyMode.Font = lineWeightPropertyMode == Palette.EntityPropertyMode.Variabel
                 ? new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold)
@@ -142,6 +141,19 @@ namespace Plan2Ext.LayerKontrolle
             //    ? new Font(lblLineWeightPropertyMode.Font.Name, lblLineWeightPropertyMode.Font.Size, FontStyle.Bold)
             //    : new Font(lblLineWeightPropertyMode.Font.Name, lblLineWeightPropertyMode.Font.Size, FontStyle.Regular);
 
+        }
+
+        private string ToGerman(Palette.EntityPropertyMode colorPropertyMode)
+        {
+            switch (colorPropertyMode)
+            {
+                case Palette.EntityPropertyMode.ByLayer:
+                    return "VonLayer";
+                case Palette.EntityPropertyMode.Variabel:
+                    return "Variabel";
+                default:
+                    throw new ArgumentOutOfRangeException("colorPropertyMode", colorPropertyMode, null);
+            }
         }
 
         private bool _getAlwaysOnShield;
@@ -197,12 +209,32 @@ namespace Plan2Ext.LayerKontrolle
 
         private void btnAllLayerOn_Click(object sender, EventArgs e)
         {
-            Palette.AllLayersOn();
+            try
+            {
+                Globs.CancelCommand();
+
+                var doc = AcApp.DocumentManager.MdiActiveDocument;
+                doc.SendStringToExecute("Plan2LayerKontrolleAllLayersOn ", true, false, false);
+            }
+            catch (Exception ex)
+            {
+                AcApp.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler aufgetreten! {0}", ex.Message));
+            }
         }
 
         private void btnCheckVonlayer_Click(object sender, EventArgs e)
         {
-            Palette.SelectAllVariableEntitiesInModelSpace();
+            try
+            {
+                Globs.CancelCommand();
+
+                var doc = AcApp.DocumentManager.MdiActiveDocument;
+                doc.SendStringToExecute("Plan2LayerKontrolleSelectAllVariableEntitiesInModelSpace ", true, false, false);
+            }
+            catch (Exception ex)
+            {
+                AcApp.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler aufgetreten! {0}", ex.Message));
+            }
         }
     }
 }

@@ -76,16 +76,14 @@ namespace Plan2Ext
             {"Polyline3d", "3D-Polylinie"},
             {"RotatedDimension", "Gedrehte Bemaßung"},
             {"AlignedDimension", "Ausgerichtete Bemaßung"},
-            
-            // todo: uncomment entitytypes
-            //{"MLeader", "Multiführungslinie"},
-            //{"RasterImage", "Pixelbild"},
-            //{"LineAngularDimension2", "Winkelbemaßung"},
-            //{"DiametricDimension", "DiametralBemaßung"},
-            //{"AttributeDefinition", "Attributdefinition"},
+            {"MLeader", "Multiführungslinie"},
+            {"RasterImage", "Pixelbild"},
+            {"LineAngularDimension2", "Winkelbemaßung"},
+            {"DiametricDimension", "DiametralBemaßung"},
+            {"AttributeDefinition", "Attributdefinition"},
         };
 
-
+        
         #endregion
 
         public static void SwitchToModelSpace()
@@ -1075,7 +1073,7 @@ namespace Plan2Ext
                     foreach (var layerOid in layTb)
                     {
                         var layerTableRecord =
-                            (_AcDb.LayerTableRecord)trans.GetObject(layerOid, _AcDb.OpenMode.ForRead);
+                            (_AcDb.LayerTableRecord) trans.GetObject(layerOid, _AcDb.OpenMode.ForRead);
                         if (!layerTableRecord.IsOff) continue;
 
                         if (!Regex.IsMatch(layerTableRecord.Name, layerRegexPattern, RegexOptions.IgnoreCase)) continue;

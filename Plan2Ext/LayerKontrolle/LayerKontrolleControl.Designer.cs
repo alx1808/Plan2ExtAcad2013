@@ -37,9 +37,9 @@
             this.lstAlwaysOn = new System.Windows.Forms.ListBox();
             this.grpBoxEntityTypes = new System.Windows.Forms.GroupBox();
             this.lstEntityTypes = new System.Windows.Forms.ListBox();
-            this.lblLineWeightPropertyMode = new System.Windows.Forms.Label();
-            this.lblLineTypePropertyMode = new System.Windows.Forms.Label();
             this.lblColorPropertyMode = new System.Windows.Forms.Label();
+            this.lblLineTypePropertyMode = new System.Windows.Forms.Label();
+            this.lblLineWeightPropertyMode = new System.Windows.Forms.Label();
             this.btnCheckVonlayer = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.grpBoxEntityTypes.SuspendLayout();
@@ -135,7 +135,7 @@
             this.grpBoxEntityTypes.Location = new System.Drawing.Point(3, 234);
             this.grpBoxEntityTypes.Name = "grpBoxEntityTypes";
             this.grpBoxEntityTypes.Size = new System.Drawing.Size(254, 152);
-            this.grpBoxEntityTypes.TabIndex = 4;
+            this.grpBoxEntityTypes.TabIndex = 5;
             this.grpBoxEntityTypes.TabStop = false;
             this.grpBoxEntityTypes.Text = "Elementtypen";
             // 
@@ -148,13 +148,13 @@
             this.lstEntityTypes.Size = new System.Drawing.Size(248, 133);
             this.lstEntityTypes.TabIndex = 0;
             // 
-            // lblLineWeightPropertyMode
+            // lblColorPropertyMode
             // 
-            this.lblLineWeightPropertyMode.AutoSize = true;
-            this.lblLineWeightPropertyMode.Location = new System.Drawing.Point(6, 415);
-            this.lblLineWeightPropertyMode.Name = "lblLineWeightPropertyMode";
-            this.lblLineWeightPropertyMode.Size = new System.Drawing.Size(0, 13);
-            this.lblLineWeightPropertyMode.TabIndex = 11;
+            this.lblColorPropertyMode.AutoSize = true;
+            this.lblColorPropertyMode.Location = new System.Drawing.Point(6, 389);
+            this.lblColorPropertyMode.Name = "lblColorPropertyMode";
+            this.lblColorPropertyMode.Size = new System.Drawing.Size(0, 13);
+            this.lblColorPropertyMode.TabIndex = 6;
             // 
             // lblLineTypePropertyMode
             // 
@@ -162,15 +162,15 @@
             this.lblLineTypePropertyMode.Location = new System.Drawing.Point(6, 402);
             this.lblLineTypePropertyMode.Name = "lblLineTypePropertyMode";
             this.lblLineTypePropertyMode.Size = new System.Drawing.Size(0, 13);
-            this.lblLineTypePropertyMode.TabIndex = 10;
+            this.lblLineTypePropertyMode.TabIndex = 7;
             // 
-            // lblColorPropertyMode
+            // lblLineWeightPropertyMode
             // 
-            this.lblColorPropertyMode.AutoSize = true;
-            this.lblColorPropertyMode.Location = new System.Drawing.Point(6, 389);
-            this.lblColorPropertyMode.Name = "lblColorPropertyMode";
-            this.lblColorPropertyMode.Size = new System.Drawing.Size(0, 13);
-            this.lblColorPropertyMode.TabIndex = 9;
+            this.lblLineWeightPropertyMode.AutoSize = true;
+            this.lblLineWeightPropertyMode.Location = new System.Drawing.Point(6, 415);
+            this.lblLineWeightPropertyMode.Name = "lblLineWeightPropertyMode";
+            this.lblLineWeightPropertyMode.Size = new System.Drawing.Size(0, 13);
+            this.lblLineWeightPropertyMode.TabIndex = 8;
             // 
             // btnCheckVonlayer
             // 
@@ -178,10 +178,9 @@
             this.btnCheckVonlayer.Location = new System.Drawing.Point(159, 389);
             this.btnCheckVonlayer.Name = "btnCheckVonlayer";
             this.btnCheckVonlayer.Size = new System.Drawing.Size(98, 23);
-            this.btnCheckVonlayer.TabIndex = 12;
+            this.btnCheckVonlayer.TabIndex = 9;
             this.btnCheckVonlayer.Text = "Vonlayer prüfen";
             this.btnCheckVonlayer.UseVisualStyleBackColor = true;
-            this.btnCheckVonlayer.Visible = false;
             this.btnCheckVonlayer.Click += new System.EventHandler(this.btnCheckVonlayer_Click);
             // 
             // LayerKontrolleControl
@@ -198,7 +197,7 @@
             this.Controls.Add(this.btnPrevious);
             this.Controls.Add(this.lstAllLayers);
             this.Name = "LayerKontrolleControl";
-            this.Size = new System.Drawing.Size(260, 474);
+            this.Size = new System.Drawing.Size(260, 550);
             this.groupBox1.ResumeLayout(false);
             this.grpBoxEntityTypes.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -217,9 +216,9 @@
         private System.Windows.Forms.Button btnAllLayerOn;
         private System.Windows.Forms.GroupBox grpBoxEntityTypes;
         private System.Windows.Forms.ListBox lstEntityTypes;
-        private System.Windows.Forms.Label lblLineWeightPropertyMode;
-        private System.Windows.Forms.Label lblLineTypePropertyMode;
         private System.Windows.Forms.Label lblColorPropertyMode;
+        private System.Windows.Forms.Label lblLineTypePropertyMode;
+        private System.Windows.Forms.Label lblLineWeightPropertyMode;
         private System.Windows.Forms.Button btnCheckVonlayer;
     }
 }

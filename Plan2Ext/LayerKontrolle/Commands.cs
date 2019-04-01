@@ -31,6 +31,38 @@ namespace Plan2Ext.LayerKontrolle
             HandleSetLayers(false);
         }
 
+        [CommandMethod("Plan2LayerKontrolleSelectAllVariableEntitiesInModelSpace")]
+        // ReSharper disable once UnusedMember.Global
+        public void Plan2LayerKontrolleSelectAllVariableEntitiesInModelSpace()
+        {
+            try
+            {
+                OpenPalette();
+                Palette.SelectAllVariableEntitiesInModelSpace();
+            }
+            catch (System.Exception ex)
+            {
+                Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture,
+                    "Fehler in Plan2LayerKontrolle aufgetreten! {0}", ex.Message));
+            }
+        }
+
+        [CommandMethod("Plan2LayerKontrolleAllLayersOn")]
+        // ReSharper disable once UnusedMember.Global
+        public void Plan2LayerKontrolleAllLayersOn()
+        {
+            try
+            {
+                OpenPalette();
+                Palette.AllLayersOn();
+            }
+            catch (System.Exception ex)
+            {
+                Application.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture,
+                    "Fehler in Plan2LayerKontrolle aufgetreten! {0}", ex.Message));
+            }
+        }
+
         private void HandleSetLayers(bool firstCall)
         {
             try
@@ -49,11 +81,11 @@ namespace Plan2Ext.LayerKontrolle
 #if NEWSETFOCUS
                     doc.Window.Focus();
 #else
-                    Autodesk.AutoCAD.Internal.Utils.SetFocusToDwgView(); // previous 2014 AutoCAD - Versions
+                Autodesk.AutoCAD.Internal.Utils.SetFocusToDwgView(); // previous 2014 AutoCAD - Versions
 #endif
                     if (firstCall)
                     {
-                        GetAlwaysOnLayers(doc, first: true);
+                        GetAlwaysOnLayers(doc,first: true);
                     }
                     else
                     {
@@ -101,7 +133,7 @@ namespace Plan2Ext.LayerKontrolle
             {
                 PromptEntityResult per;
                 if (first)
-                {
+                { 
                     // first is always cancel
                     doc.Editor.GetEntity("\nElement wählen, dessen Layer immer angezeigt werden soll: ");
                     first = false;
