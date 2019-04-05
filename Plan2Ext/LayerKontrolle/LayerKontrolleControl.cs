@@ -113,9 +113,15 @@ namespace Plan2Ext.LayerKontrolle
             Palette.EntityPropertyMode lineTypePropertyMode;
             Palette.EntityPropertyMode lineWeightPropertyMode;
             Palette.GetEntityTypesForLayer(lstAllLayers.SelectedItem.ToString(), entityTypesDictionary, out colorPropertyMode, out lineTypePropertyMode, out lineWeightPropertyMode);
+            var itemTexts = new List<string>();
             foreach (var kvp in entityTypesDictionary)
             {
-                lstEntityTypes.Items.Add(kvp.Key.GetGermanName() + " (" + kvp.Value + ")");
+                itemTexts.Add(kvp.Key.GetGermanName() + " (" + kvp.Value + ")");
+                
+            }
+            foreach (var itemT in itemTexts.OrderBy(x => x))
+            {
+                lstEntityTypes.Items.Add(itemT);
             }
 
             // ReSharper disable once LocalizableElement
@@ -230,6 +236,27 @@ namespace Plan2Ext.LayerKontrolle
 
                 var doc = AcApp.DocumentManager.MdiActiveDocument;
                 doc.SendStringToExecute("Plan2LayerKontrolleSelectAllVariableEntitiesInModelSpace ", true, false, false);
+            }
+            catch (Exception ex)
+            {
+                AcApp.ShowAlertDialog(string.Format(CultureInfo.CurrentCulture, "Fehler aufgetreten! {0}", ex.Message));
+            }
+        }
+
+        private void lstCheckLayernameLength_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (var frm = new LayerNamesLengthFrm())
+                {
+                    if (Autodesk.AutoCAD.ApplicationServices.Application.ShowModalDialog(frm) == DialogResult.Yes)
+                    {
+                        var index = lstAllLayers.SelectedIndex;
+                        InitLayers(true);
+                        if (index > 0)
+                            lstAllLayers.SelectedIndex = index;
+                    }
+                }
             }
             catch (Exception ex)
             {
