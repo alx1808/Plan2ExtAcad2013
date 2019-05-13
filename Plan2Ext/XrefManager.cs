@@ -4,13 +4,32 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
-
+// ReSharper disable StringLiteralTypo
 // ReSharper disable IdentifierTypo
 
 namespace Plan2Ext
 {
     internal static class XrefManager
     {
+        public static IEnumerable<string> GetAllXrefNames(Database db)
+        {
+            var names = new HashSet<string>();
+            using (var transaction = db.TransactionManager.StartTransaction())
+            {
+                var xrefGraph = db.GetHostDwgXrefGraph(true);
+                var graphNode = xrefGraph.RootNode;
+                for (int i = 0; i < graphNode.NumOut; i++)
+                {
+                    var xrefGraphNode = graphNode.Out(i) as XrefGraphNode;
+                    if (xrefGraphNode == null) continue;
+                    names.Add(xrefGraphNode.Name);
+                }
+
+                transaction.Commit();
+            }
+            return names;
+        }
+
         public static IEnumerable<ObjectId> GetAllFirstLevelXrefIds(Database db)
         {
             var xrefOids = new List<ObjectId>();
@@ -34,6 +53,40 @@ namespace Plan2Ext
 
             return xrefOids;
         }
+
+        [CommandMethod("XrefGraphExtern")]
+
+        // ReSharper disable once UnusedMember.Global
+        public static void XrefGraphExtern()
+        {
+
+            string dwgfilename;
+            using (var openFileDialog = new System.Windows.Forms.OpenFileDialog())
+            {
+                openFileDialog.CheckFileExists = true;
+                openFileDialog.CheckPathExists = true;
+                openFileDialog.Multiselect = false;
+                // ReSharper disable once LocalizableElement
+                openFileDialog.Title = "Xref-Datei";
+                var filter = "DWG" + "|*." + "dwg";
+                openFileDialog.Filter = filter;
+                if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                {
+                    return;
+                }
+                else
+                {
+                    dwgfilename = openFileDialog.FileName;
+                }
+            }
+
+            using (var db = new Database())
+            {
+                db.ReadDwgFile(dwgfilename, System.IO.FileShare.Read, false, null);
+                GetAllXrefNames(db);
+            }
+        }
+
 
 
         [CommandMethod("XrefGraph")]
