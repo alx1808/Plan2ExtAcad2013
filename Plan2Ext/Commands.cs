@@ -47,7 +47,7 @@ namespace Plan2Ext
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Convert.ToString((typeof(Commands))));
         #endregion
 
-        [_AcTrx.CommandMethod("Plan2Test")]
+        //[_AcTrx.CommandMethod("Plan2Test")]
         static public void Plan2Test()
         {
             _AcAp.Document doc = _AcAp.Application.DocumentManager.MdiActiveDocument;
